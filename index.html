@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ТамЛюдно — насколько людно в месте прямо сейчас</title>
+<meta name="description" content="Оцените пешеходный трафик любого адреса: загруженность по часам и дням недели, live-индекс, сравнение локаций для бизнеса.">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="assets/logo_192.png">
+<style>
+  :root { --indigo:#4A2FD6; --orange:#FF7A3D; --ink:#14122b; }
+  * { margin:0; box-sizing:border-box; font-family:-apple-system,'Segoe UI',Roboto,Arial,sans-serif; }
+  body { color:var(--ink); background:#faf8ff; }
+  .hero { background:linear-gradient(135deg,#2b1a8f 0%,#4A2FD6 45%,#FF7A3D 130%); color:#fff; padding:72px 20px 96px; text-align:center; }
+  .hero h1 { font-size:clamp(30px,5vw,52px); letter-spacing:-.02em; }
+  .hero p { margin:18px auto 0; max-width:560px; font-size:clamp(15px,2vw,19px); opacity:.92; }
+  .search { max-width:620px; margin:-36px auto 0; padding:0 20px; }
+  .search form { display:flex; gap:10px; background:#fff; border-radius:16px; padding:8px; box-shadow:0 18px 50px rgba(30,10,90,.25); }
+  .search input { flex:1; border:0; outline:0; font-size:16px; padding:12px 14px; border-radius:10px; }
+  .search button { border:0; border-radius:12px; padding:12px 22px; font-size:16px; font-weight:600; color:#fff; background:var(--indigo); cursor:pointer; }
+  .search button:hover { filter:brightness(1.08); }
+  #result { max-width:620px; margin:20px auto; padding:0 20px; }
+  .card { background:#fff; border-radius:14px; padding:18px; box-shadow:0 6px 24px rgba(30,10,90,.08); margin-bottom:12px; }
+  .card b { font-size:17px; }
+  .card .addr { color:#666; font-size:14px; margin-top:2px; }
+  .bars { display:flex; align-items:flex-end; gap:3px; height:80px; margin-top:12px; }
+  .bars div { flex:1; border-radius:3px 3px 0 0; background:linear-gradient(180deg,#FF7A3D,#4A2FD6); min-height:4%; }
+  section { max-width:880px; margin:0 auto; padding:48px 20px; }
+  section h2 { font-size:26px; margin-bottom:20px; text-align:center; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px; }
+  .tile { background:#fff; border-radius:14px; padding:20px; box-shadow:0 4px 16px rgba(30,10,90,.07); }
+  .tile h3 { font-size:16px; margin-bottom:8px; }
+  .tile p { font-size:14px; color:#555; }
+  .cta { text-align:center; padding:56px 20px 72px; }
+  .cta a { display:inline-block; margin:8px; padding:14px 28px; border-radius:14px; font-weight:700; text-decoration:none; }
+  .cta .app { background:var(--ink); color:#fff; }
+  .cta .tg { background:#2AABEE; color:#fff; }
+  footer { text-align:center; color:#999; font-size:13px; padding:24px; }
+</style>
+</head>
+<body>
+<div class="hero">
+  <img src="assets/logo_192.png" alt="ТамЛюдно" width="96" height="96" style="border-radius:24px;box-shadow:0 12px 40px rgba(0,0,0,.35);margin-bottom:18px;">
+  <h1>ТамЛюдно</h1>
+  <p>Насколько людно в месте прямо сейчас и по каким часам там толпа. Для тех, кто выбирает точку под бизнес и следит за своей.</p>
+</div>
+<div class="search">
+  <form id="f">
+    <input id="q" type="text" placeholder="Адрес или название места — напр. кафе на Тверской" autocomplete="off">
+    <button type="submit">Оценить</button>
+  </form>
+</div>
+<div id="result"></div>
+
+<section>
+  <h2>Что умеет</h2>
+  <div class="grid">
+    <div class="tile"><h3>Оценка локации</h3><p>График загруженности по часам и дням недели для любого заведения.</p></div>
+    <div class="tile"><h3>Сейчас людно?</h3><p>Live-индекс: насколько место полнее или пустее обычного в этот час.</p></div>
+    <div class="tile"><h3>Сравнение адресов</h3><p>Бок о бок несколько точек — где открыть кафе, магазин или кухню.</p></div>
+    <div class="tile"><h3>Радар района</h3><p>Самые людные места вокруг точки в нужный день и час.</p></div>
+    <div class="tile"><h3>Мониторинг</h3><p>Следим за вашей точкой и пришлём алерт, если трафик просел.</p></div>
+    <div class="tile"><h3>Отчёт по адресу</h3><p>PDF с трафиком, конкурентами рядом и выводом — перед подписанием аренды.</p></div>
+  </div>
+</section>
+
+<div class="cta">
+  <h2 style="margin-bottom:18px">Начните бесплатно</h2>
+  <a class="tg" href="https://t.me/TamLyudnoBot">Telegram-бот</a>
+  <a class="app" href="#">Приложение в RuStore — скоро</a>
+</div>
+
+<footer>© ТамЛюдно, 2026 · Данные об агрегированной посещаемости, без персональных данных</footer>
+
+<script>
+const API='https://tamlyudno-api.fly.dev';
+document.getElementById('f').addEventListener('submit', async e=>{
+  e.preventDefault();
+  const q=document.getElementById('q').value.trim(); if(!q) return;
+  const box=document.getElementById('result');
+  box.innerHTML='<div class="card">Ищем…</div>';
+  try{
+    const r=await fetch(API+'/api/search',{method:'POST',headers:{'Content-Type':'application/json','X-Device-Id':'web-'+Math.random().toString(36).slice(2)},body:JSON.stringify({query:q,num:5})});
+    const d=await r.json();
+    if(!d.venues||!d.venues.length){box.innerHTML='<div class="card">Ничего не нашли — уточните адрес.</div>';return;}
+    box.innerHTML=d.venues.map(v=>`
+      <div class="card"><b>${v.name||'?'}</b><div class="addr">${v.address||''}</div>
+      <a href="#" style="color:var(--indigo);font-size:14px" onclick="showFc('${v.venue_id}');return false">Показать неделю →</a>
+      <div class="fc" id="fc-${v.venue_id}"></div></div>`).join('');
+  }catch(_){box.innerHTML='<div class="card">Ошибка. Попробуйте позже.</div>';}
+});
+window.showFc=async id=>{
+  const el=document.getElementById('fc-'+id); el.innerHTML='…';
+  const d=await (await fetch(API+'/api/venues/'+id+'/forecast')).json();
+  const day=(d.forecast||[]).find(x=>(x.day_info||{}).day_int===new Date().getDay()%7)||(d.forecast||[])[0];
+  const raw=(day&&day.day_raw)||[];
+  el.innerHTML='<div class="bars">'+raw.map(v=>`<div style="height:${Math.max(4,v)}%"></div>`).join('')+'</div>';
+};
+</script>
+</body>
+</html>
